@@ -1,0 +1,43 @@
+install.packages("devtools")
+devtools::install_github("jhudsl/collegeIncome")
+library(collegeIncome)
+data(college)
+
+devtools::install_github("jhudsl/matahari")
+library(matahari)
+
+#“Is there an association between college major category and income?”
+
+dance_start(value = FALSE, contents = FALSE)
+
+#Exploratory analysis
+summary(college)
+str(college)
+plot(college$median)
+library(dplyr)
+collegesort <- arrange(college, rank)
+collegesort <- collegesort[,1:10]
+head(collegesort)
+length(unique(collegesort$major_category))
+collegesort <- mutate(collegesort, major_category = as.factor(major_category))
+majorgrouped <- group_by(collegesort, major_category)
+
+with(collegesort, plot(x=major_category, y=median, type="n"))
+points(x=collegesort$major_category, y=collegesort$median, col="red")
+
+#Compare biggest and smallest
+test <- summarise(majorgrouped, totalsample = sum(sample_size), n = length(sample_size), total = mean(median))
+arrange(test, total) #Interdisciplinary only has sample size of 1 - ignore
+
+#Two categories
+choice <- collegesort[collegesort$major_category== "Business" | 
+                        collegesort$major_category == "Computers & Mathematics",]
+head(choice)
+bus <- choice[choice$major_category== "Business",]
+busmod <- 
+cm <- choice[choice$major_category == "Computers & Mathematics",]
+
+#H0 is that there is no difference in average median earnings between two groups
+t.test(bus$median, cm$median, var.equal = TRUE)
+#Reject null, there is a difference in median earnings between the groups
+dance_save("~/Desktop/college_major_analysis.rds")
